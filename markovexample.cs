@@ -65,10 +65,6 @@ namespace Markov
         string lines;
         int markovDegreeNumber;
         int storyLength;
-        int totalChar = 0; // tracks total characters when flow over storyLength
-        string endings = ".?!";
-        string capitals = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        Random rnd = new Random();
         ListSymbolTable<string, MarkovEntry> database;
 
         public ListMarkovModel(string lines, int markovDegreeNumber, int storyLength)
@@ -97,39 +93,20 @@ namespace Markov
             string story = "";
             string state = "";
             char c;
-            int count = 0;
 
             //first state
-            state = RandomStart();
+            state = lines.Substring(0, markovDegreeNumber);
             c = database[state].RandomLetter();
-            story = story + state + c;
+            story = state + c;
             state = IncrementState(state, c);
-            totalChar = totalChar + markovDegreeNumber + 1;
 
-            while (!endings.Contains(c) || count < storyLength)
+            for (int i = 0; i < storyLength; i++)
             {
-                if (state.Length == markovDegreeNumber && database[state] != null)
-                {
-                    c = database[state].RandomLetter();
-                    story = story + c;
-                    state = IncrementState(state, c);
-                    count++;
-                    totalChar++;
-                }
+                c = database[state].RandomLetter();
+                story = story + c;
+                state = IncrementState(state, c);
             }
             return story;
-        }
-
-        public string RandomStart()
-        {
-            int start = rnd.Next(0, lines.Length - markovDegreeNumber);
-            string state = lines.Substring(start, markovDegreeNumber);
-            while (state.Contains(' ') || !capitals.Contains(state.Substring(0,1)))
-            {
-                start = rnd.Next(0, lines.Length - markovDegreeNumber);
-                state = lines.Substring(start, markovDegreeNumber);
-            }
-            return state;
         }
 
         public string IncrementState(string state, char c)
