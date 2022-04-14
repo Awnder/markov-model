@@ -74,9 +74,7 @@ namespace Markov
         string lines;       //lines from the text
         int stateLength;    //state length
         int storyLength;    //story length
-        int totalChar = 0;  //tracks total characters when flow over storyLength
-        string endings = ".?!";
-        string capitals = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        int totalChar = 0;  //tracks total characters
         Random rnd = new Random();
         ListSymbolTable<string, MarkovEntry> database = new ListSymbolTable<string, MarkovEntry>();
 
@@ -111,7 +109,6 @@ namespace Markov
             string story = ""; //stores the story as a whole
             string state = ""; //stores each state that program iterates through
             char c;            //stores each character generated according to each state
-            int count = 0;     //stores amount of characters generated
 
             //first state
             state = lines.Substring(0, stateLength);
@@ -121,17 +118,12 @@ namespace Markov
             totalChar = totalChar + stateLength + 1;
 
             //loops until the next character is ".?!" or the count < storyLength
-            while (count < storyLength)
+            for (int i = 0; i < storyLength; i++)
             {
-                //last check to see if the state is the right length and the state is actually in the database
-                if (state.Length == stateLength && database[state] != null)
-                {
-                    c = database[state].RandomLetter(); //gets a random letter
-                    story = story + c; //adds the letter to the story
-                    state = IncrementState(state, c); //moves the state to the next one forward
-                    count++;
-                    totalChar++;
-                }
+                c = database[state].RandomLetter(); //gets a random letter
+                story = story + c; //adds the letter to the story
+                state = IncrementState(state, c); //moves the state to the next one forward
+                totalChar++;
             }
             return story;
         }
@@ -147,6 +139,14 @@ namespace Markov
         }
 
         ///<summary>
+        ///Returns totalChar.
+        ///</summary>
+        public int TotalChar
+        {
+            get {return totalChar;}
+        }
+
+        ///<summary>
         ///Returns amount of database nodes.
         ///</summary>
         public override string ToString()
@@ -158,12 +158,19 @@ namespace Markov
     ///<summary>
     ///Records information in a Binary Tree Symbol Table.
     ///</summary>
-    public class TreeMarkovModel : MarkovModel
+    public class TreeMarkovModel
     {
+        string lines;       //lines from the text
+        int stateLength;    //state length
+        int storyLength;    //story length
+        int totalChar = 0;  //tracks total characters
         TreeSymbolTable<string, MarkovEntry> database;
 
-        public TreeMarkovModel(string lines, int stateLength, int storyLength) : base (lines, stateLength, storyLength)
+        public TreeMarkovModel(string lines, int stateLength, int storyLength)
         {
+            this.lines = lines;
+            this.stateLength = stateLength;
+            this.storyLength = storyLength;
             database = new TreeSymbolTable<string, MarkovEntry>();
 
             //creates database
@@ -182,43 +189,26 @@ namespace Markov
 
         public string CreateStory()
         {
-            string story = "";
-            string state = "";
-            char c;
-            int count = 0;
+            string story = ""; //stores the story as a whole
+            string state = ""; //stores each state that program iterates through
+            char c;            //stores each character generated according to each state
 
             //first state
-            state = RandomStart();
+            state = lines.Substring(0, stateLength);
             c = database[state].RandomLetter();
-            story = story + state + c;
+            story = story + state + c; //adds the beginning to the start of the story as well as the next character
             state = IncrementState(state, c);
             totalChar = totalChar + stateLength + 1;
 
-            while (!endings.Contains(c) || count < storyLength)
+            //loops until the next character is ".?!" or the count < storyLength
+            for (int i = 0; i < storyLength; i++)
             {
-                if (state.Length == stateLength && database[state] != null) //error checking just in case states not stored or retrieved correctly
-                {
-                    c = database[state].RandomLetter();
-                    story = story + c;
-                    state = IncrementState(state, c);
-                    count++;
-                    totalChar++;
-                }
+                c = database[state].RandomLetter(); //gets a random letter
+                story = story + c; //adds the letter to the story
+                state = IncrementState(state, c); //moves the state to the next one forward
+                totalChar++;
             }
             return story;
-        }
-
-        public string RandomStart()
-        {
-            int start = rnd.Next(0, lines.Length - stateLength);
-            string state = lines.Substring(start, stateLength);
-            // finds state without spaces in it and with a beginning capital letter
-            while (state.Contains(' ') || !capitals.Contains(state.Substring(0,1)))
-            {
-                start = rnd.Next(0, lines.Length - stateLength);
-                state = lines.Substring(start, stateLength);
-            }
-            return state;
         }
 
         public string IncrementState(string state, char c)
@@ -226,6 +216,11 @@ namespace Markov
             state += c;
             state = state.Substring(1); //gets all char after the first to retain correct stateLength length
             return state;
+        }
+
+        public int TotalChar
+        {
+            get {return totalChar;}
         }
 
         public override string ToString()
@@ -237,12 +232,20 @@ namespace Markov
     ///<summary>
     ///Records information in .NET's Sorted Dictionary.
     ///</summary>
-    public class DictMarkovModel : MarkovModel
+    public class DictMarkovModel
     {
+        string lines;
+        int stateLength;
+        int storyLength;
+        int totalChar = 0;  //tracks total characters
+
         SortedDictionary<string, MarkovEntry> database;
 
-        public DictMarkovModel(string lines, int stateLength, int storyLength) : base (lines, stateLength, storyLength)
+        public DictMarkovModel(string lines, int stateLength, int storyLength)
         {
+            this.lines = lines;
+            this.stateLength = stateLength;
+            this.storyLength = storyLength;
             database = new SortedDictionary<string, MarkovEntry>();
 
             //creates database
@@ -261,42 +264,31 @@ namespace Markov
 
         public string CreateStory()
         {
-            string story = "";
-            string state = "";
-            char c;
-            int count = 0;
+            string story = ""; //stores the story as a whole
+            string state = ""; //stores each state that program iterates through
+            char c;            //stores each character generated according to each state
 
             //first state
-            state = RandomStart();
+            state = lines.Substring(0, stateLength);
             c = database[state].RandomLetter();
-            story = story + state + c;
+            story = story + state + c; //adds the beginning to the start of the story as well as the next character
             state = IncrementState(state, c);
             totalChar = totalChar + stateLength + 1;
 
-            while (!endings.Contains(c) || count < storyLength)
+            //loops until the next character is ".?!" or the count < storyLength
+            for (int i = 0; i < storyLength; i++)
             {
-                if (state.Length == stateLength && database[state] != null)
-                {
-                    c = database[state].RandomLetter();
-                    story = story + c;
-                    state = IncrementState(state, c);
-                    count++;
-                    totalChar++;
-                }
+                c = database[state].RandomLetter(); //gets a random letter
+                story = story + c; //adds the letter to the story
+                state = IncrementState(state, c); //moves the state to the next one forward
+                totalChar++;
             }
             return story;
         }
 
-        public string RandomStart()
+        public int TotalChar
         {
-            int start = rnd.Next(0, lines.Length - stateLength);
-            string state = lines.Substring(start, stateLength);
-            while (state.Contains(' ') || !capitals.Contains(state.Substring(0,1)))
-            {
-                start = rnd.Next(0, lines.Length - stateLength);
-                state = lines.Substring(start, stateLength);
-            }
-            return state;
+            get {return totalChar;}
         }
 
         public string IncrementState(string state, char c)
